@@ -27,6 +27,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, 
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { navPage, navPages } from './nav.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const contentDir = path.join(root, 'src/content/docs');
@@ -274,9 +275,9 @@ async function fetchProject(p) {
       pages.push({ rel, ...convert(p, ref, rel, src, allFiles) });
     }
 
-    // Sidebar order: the ids listed in projects.json "order" first, then the
-    // rest alphabetically by title.
-    const order = p.order ?? [];
+    // Sidebar order: the pages listed in projects.json "nav" (or "order") first,
+    // then the rest alphabetically by title.
+    const order = navPages(p);
     const key = (rel) => rel.replace(/\.mdx?$/i, '');
     const ranked = [...pages].sort((a, b) => {
       const ia = order.indexOf(key(a.rel));
@@ -284,7 +285,15 @@ async function fetchProject(p) {
       if (ia !== -1 || ib !== -1) return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib);
       return a.title.localeCompare(b.title);
     });
-    for (const k of order) if (!pages.some((pg) => key(pg.rel) === k)) warn(`${p.id}: "order" lists ${k}, which has no page`);
+    const field = p.nav ? 'nav' : 'order';
+    for (const k of order) if (!pages.some((pg) => key(pg.rel) === k)) warn(`${p.id}: "${field}" lists ${k}, which has no page`);
+    if (p.nav) {
+      for (const pg of pages) {
+        if (!/^(readme|index)\.mdx?$/i.test(pg.rel) && !order.includes(key(pg.rel))) {
+          warn(`${p.id}: ${pg.rel} is not in "nav" in projects.json; it goes under "More"`);
+        }
+      }
+    }
 
     ranked.forEach((pg, i) => {
       const fields = {
@@ -304,15 +313,46 @@ async function fetchProject(p) {
       writeFileSync(dest, yamlFrontmatter(fields, pg.existingFm) + pg.body.replace(/^\n+/, ''));
     });
 
-    // A landing page at /<id>/ unless the project ships its own docs/README.md.
+    // A landing page at /<id>/ unless the project ships its own docs/README.md:
+    // with "nav", a card per group; otherwise a plain list of pages.
     if (!pages.some((pg) => /^(readme|index)\.mdx?$/i.test(pg.rel))) {
-      const list = ranked.map((pg) => `- [${pg.title}](${relUrl(`/${p.id}/`, pageUrl(p.id, pg.rel))})`).join('\n');
+      const href = (pg) => relUrl(`/${p.id}/`, pageUrl(p.id, pg.rel));
       const intro = p.description ? `${p.description}\n\n` : '';
-      writeFileSync(
-        path.join(outDir, 'index.md'),
-        yamlFrontmatter({ title: p.name, editUrl: false, sidebar: { label: 'Overview', order: 0 } }, '') +
-          `${intro}These pages come from the [\`docs/\` folder of ${p.repo}](https://github.com/${p.repo}/tree/${ref}/docs) at **${ref}**.\n\n${list}\n`,
+      const fromLine = `These pages come from the [\`docs/\` folder of ${p.repo}](https://github.com/${p.repo}/tree/${ref}/docs) at **${ref}**.`;
+      const fm = yamlFrontmatter(
+        { title: p.name, editUrl: false, tableOfContents: false, sidebar: { label: 'Overview', order: 0 } },
+        '',
       );
+      if (p.nav) {
+        const byKey = new Map(ranked.map((pg) => [key(pg.rel), pg]));
+        const groups = [
+          ...p.nav.map((g) => ({
+            label: g.label,
+            items: g.items.filter((it) => byKey.has(navPage(it))).map((it) => ({ pg: byKey.get(navPage(it)), label: it.label })),
+          })),
+          { label: 'More', items: ranked.filter((pg) => key(pg.rel) !== 'index' && !order.includes(key(pg.rel))).map((pg) => ({ pg })) },
+        ].filter((g) => g.items.length);
+        const first = groups[0].items[0].pg;
+        const attr = (v) => JSON.stringify(v).replace(/[{}<>]/g, (c) => `&#${c.charCodeAt(0)};`);
+        const cards = groups
+          .map((g) => {
+            const links = g.items.map(({ pg, label }) => `- [${label ?? pg.title}](${href(pg)})`).join('\n');
+            return `<Card title=${attr(g.label)}>\n\n${links}\n\n</Card>`;
+          })
+          .join('\n\n');
+        writeFileSync(
+          path.join(outDir, 'index.mdx'),
+          fm +
+            `import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';\n\n` +
+            intro +
+            `<LinkCard title=${attr(first.title)} description=${attr(`New to ${p.name}? Start here.`)} href=${attr(href(first))} />\n\n` +
+            `<div class="rw-nav-cards">\n\n<CardGrid>\n\n${cards}\n\n</CardGrid>\n\n</div>\n\n` +
+            `${fromLine}\n`,
+        );
+      } else {
+        const list = ranked.map((pg) => `- [${pg.title}](${href(pg)})`).join('\n');
+        writeFileSync(path.join(outDir, 'index.md'), fm + `${intro}${fromLine}\n\n${list}\n`);
+      }
     }
     console.log(`  ${pages.length} pages, ${files.length - pages.length} other files`);
   } finally {

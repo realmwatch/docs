@@ -1,11 +1,42 @@
 // @ts-check
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
+import { navPage, navPages } from './scripts/nav.mjs';
 
 /** @type {{ id: string, name: string }[]} */
 const projects = JSON.parse(readFileSync(new URL('./projects.json', import.meta.url), 'utf8'));
+
+/** Page names fetched for a project (scripts/fetch-docs.mjs runs before Astro). */
+function fetchedPages(id) {
+  const dir = new URL(`./src/content/docs/${id}/`, import.meta.url);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { recursive: true })
+    .map((f) => String(f).split('\\').join('/'))
+    .filter((f) => /\.mdx?$/i.test(f))
+    .map((f) => f.replace(/\.mdx?$/i, ''))
+    .filter((f) => !/(^|\/)index$/.test(f));
+}
+
+/** A project's sidebar group: its "nav" groups if it has them, else every page. */
+function projectSidebar(p) {
+  if (!p.nav) return { label: p.name, items: [{ autogenerate: { directory: p.id } }] };
+  const listed = navPages(p);
+  const fetched = fetchedPages(p.id);
+  const item = (it) => ({ slug: `${p.id}/${navPage(it)}`, ...(it.label && { label: it.label }) });
+  const groups = p.nav.map((g) => ({
+    label: g.label,
+    items: g.items.filter((it) => fetched.includes(navPage(it))).map(item),
+  }));
+  // Pages a project added since its "nav" was written still get listed.
+  const more = fetched.filter((f) => !listed.includes(f)).sort();
+  if (more.length) groups.push({ label: 'More', items: more.map(item) });
+  return {
+    label: p.name,
+    items: [{ label: 'Overview', slug: p.id }, ...groups.filter((g) => g.items.length)],
+  };
+}
 
 export default defineConfig({
   // Public URL, used for canonical URLs and the sitemap. Keep in sync with
@@ -29,6 +60,7 @@ export default defineConfig({
       // (scripts/fetch-docs.mjs sets `editUrl` to the project's own repo).
       editLink: { baseUrl: 'https://github.com/realmwatch/docs/edit/main/' },
       lastUpdated: false,
+      customCss: ['./src/styles/custom.css'],
       components: {
         PageTitle: './src/components/PageTitle.astro',
       },
@@ -41,7 +73,7 @@ export default defineConfig({
             { label: 'Contributing', slug: 'contributing' },
           ],
         },
-        ...projects.map((p) => ({ label: p.name, items: [{ autogenerate: { directory: p.id } }] })),
+        ...projects.map(projectSidebar),
       ],
       plugins: [
         starlightLinksValidator({

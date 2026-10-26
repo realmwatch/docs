@@ -42,5 +42,15 @@ in this repository:
 ```
 
 `ref` is `latest-release` (the newest GitHub release) or any branch or tag.
-An optional `order` array lists page names to put first in the sidebar; the
-rest follow alphabetically.
+An optional `nav` array groups the pages in the sidebar and on the project's
+overview page, with an optional short sidebar label for any page whose title is
+long:
+
+```json
+"nav": [
+  { "label": "Set up", "items": ["getting-started", { "page": "hosting", "label": "Where to host" }] }
+]
+```
+
+Pages not listed in `nav` still appear, under **More**. Without `nav`, an
+`order` array lists page names to put first; the rest follow alphabetically.
