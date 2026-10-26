@@ -61,6 +61,17 @@ export default defineConfig({
       editLink: { baseUrl: 'https://github.com/realmwatch/docs/edit/main/' },
       lastUpdated: false,
       customCss: ['./src/styles/custom.css'],
+      routeMiddleware: './src/routeData.ts',
+      // Link previews (Slack, Discord, X, LinkedIn, iMessage...): one card for
+      // every page. public/og.png is 1200x630; Starlight adds the title,
+      // description, URL and twitter:card itself.
+      head: [
+        { tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.realmwatch.dev/og.png' } },
+        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+        { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Realmwatch documentation' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://docs.realmwatch.dev/og.png' } },
+      ],
       components: {
         PageTitle: './src/components/PageTitle.astro',
       },
