@@ -1,0 +1,27 @@
+---
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+
+const { source } = Astro.locals.starlightRoute.entry.data;
+---
+
+<Default />
+{
+  source && (
+    <p class="rw-source">
+      From {source.project} <a href={`https://github.com/${source.repo}/tree/${source.ref}`}>{source.ref}</a>
+      {' · '}
+      <a href={source.url}>View source</a>
+    </p>
+  )
+}
+
+<style>
+  .rw-source {
+    margin-top: 0.25rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .rw-source a {
+    color: inherit;
+  }
+</style>

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.env
+.DS_Store
+# Fetched from each project's repo at build time (scripts/fetch-docs.mjs)
+src/content/docs/*/
+!src/content/docs/.keep
+public/projects/

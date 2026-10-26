@@ -1,0 +1,10 @@
+[
+  {
+    "id": "heimdall",
+    "name": "Heimdall",
+    "repo": "realmwatch/heimdall",
+    "ref": "latest-release",
+    "description": "Fleet security for a handful to a few hundred Linux servers: inventory, vulnerabilities, end-of-life, logins and attack surface, from one small hub.",
+    "order": ["getting-started", "deployment", "hosting", "collector"]
+  }
+]

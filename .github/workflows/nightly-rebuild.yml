@@ -1,0 +1,27 @@
+# Rebuilds the site every night so new project releases show up without a
+# commit here. It only pings a Cloudflare Workers Builds deploy hook; the
+# build itself runs on Cloudflare. Skips quietly when the secret isn't set.
+name: Nightly rebuild
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger Workers Builds deploy hook
+        env:
+          CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$CF_DEPLOY_HOOK" ]; then
+            echo "CF_DEPLOY_HOOK is not set; nothing to do."
+            exit 0
+          fi
+          curl --fail --silent --show-error --max-time 30 -X POST "$CF_DEPLOY_HOOK" > /dev/null
+          echo "Rebuild requested."

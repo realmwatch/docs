@@ -1,0 +1,28 @@
+{
+  "name": "realmwatch-docs",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "fetch-docs": "node scripts/fetch-docs.mjs",
+    "dev": "node scripts/fetch-docs.mjs && astro dev",
+    "build": "node scripts/fetch-docs.mjs && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.7",
+    "astro": "^7.4.2",
+    "sharp": "^0.34.0",
+    "starlight-links-validator": "^0.27.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.152.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp", "workerd"]
+  }
+}
