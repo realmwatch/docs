@@ -108,6 +108,71 @@ function plainText(md) {
     .trim();
 }
 
+/**
+ * A page's description for search results and link previews, from its intro
+ * (the text before the first "## " heading): paragraphs and quoted summaries,
+ * skipping status notes, all-bold lines, "Label: [link]" lines, lead-ins to a
+ * list ("... two things:"), questions and "See ..." pointers. At most about
+ * 160 characters, cut at a sentence or word boundary. Empty if the intro has
+ * nothing usable (under 50 characters).
+ */
+function describe(body) {
+  const blocks = [];
+  let cur = [];
+  let fence = false;
+  const flush = () => {
+    if (cur.length) blocks.push(cur.join(' '));
+    cur = [];
+  };
+  for (const line of body.split('\n')) {
+    if (/^\s*(`{3,}|~{3,})/.test(line)) {
+      fence = !fence;
+      flush();
+      continue;
+    }
+    if (fence) continue;
+    if (/^##\s/.test(line)) break;
+    const text = line.replace(/^>\s?/, '').trim();
+    // Blank lines, lists, tables, asides and HTML end a block and aren't used.
+    const skip =
+      !text ||
+      /^([#|:<]|[-*+]\s|\d+[.)]\s)/.test(text) ||
+      /^\*\*.*\*\*$/.test(text) ||
+      /^[A-Z][a-z]+( [a-z]+){0,3}:\s*[[`]/.test(text);
+    if (skip) {
+      flush();
+      continue;
+    }
+    cur.push(text);
+  }
+  flush();
+
+  const sentences = [];
+  for (const block of blocks) {
+    const text = block
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\*\*?|`/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (/^(status|what works today)\b/i.test(text)) continue;
+    for (const sentence of text.split(/(?<=[.!?])\s+(?=[A-Z"'(])/)) {
+      const t = sentence.trim();
+      if (!t || /[:?]$/.test(t) || /^see\b/i.test(t)) continue;
+      sentences.push(t);
+    }
+  }
+  let out = '';
+  for (const t of sentences) {
+    if (!out) out = t;
+    else if (out.length + 1 + t.length <= 160) out += ' ' + t;
+    else break;
+  }
+  if (out.length < 50) return '';
+  if (out.length <= 160) return out;
+  const cut = out.slice(0, 157);
+  return cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:.(–-]+$/, '') + '…';
+}
+
 /** Applies fn to the parts of a line that are not inline code. */
 function outsideInlineCode(line, fn) {
   return line
@@ -296,8 +361,11 @@ async function fetchProject(p) {
     }
 
     ranked.forEach((pg, i) => {
+      // A page's own frontmatter description wins (yamlFrontmatter keeps it).
+      const description = describe(pg.body) || p.description;
       const fields = {
         title: pg.title,
+        ...(description && { description }),
         editUrl: `https://github.com/${p.repo}/edit/main/docs/${pg.rel}`,
         sidebar: /^(readme|index)\.mdx?$/i.test(pg.rel) ? { label: 'Overview', order: 0 } : { order: i + 1 },
         source: {
@@ -320,7 +388,13 @@ async function fetchProject(p) {
       const intro = p.description ? `${p.description}\n\n` : '';
       const fromLine = `These pages come from the [\`docs/\` folder of ${p.repo}](https://github.com/${p.repo}/tree/${ref}/docs) at **${ref}**.`;
       const fm = yamlFrontmatter(
-        { title: p.name, editUrl: false, tableOfContents: false, sidebar: { label: 'Overview', order: 0 } },
+        {
+          title: p.name,
+          ...(p.description && { description: p.description }),
+          editUrl: false,
+          tableOfContents: false,
+          sidebar: { label: 'Overview', order: 0 },
+        },
         '',
       );
       if (p.nav) {
