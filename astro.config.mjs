@@ -16,6 +16,14 @@ export default defineConfig({
     starlight({
       title: 'Realmwatch',
       description: 'Documentation for Realmwatch projects.',
+      // The wordmark's text is near-white, so light mode gets a recolored copy.
+      logo: {
+        light: './src/assets/logo-light.png',
+        dark: './src/assets/logo-dark.png',
+        alt: 'Realmwatch',
+        replacesTitle: true,
+      },
+      favicon: '/favicon.png',
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/realmwatch' }],
       // Org pages are edited here. Project pages override this per page
       // (scripts/fetch-docs.mjs sets `editUrl` to the project's own repo).
