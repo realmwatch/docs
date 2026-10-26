@@ -2,12 +2,11 @@
 
 The documentation site for [Realmwatch](https://github.com/realmwatch) projects,
 built with [Astro Starlight](https://starlight.astro.build) and served as static
-files from a Cloudflare Worker.
+files from a Cloudflare Worker at <https://docs.realmwatch.dev>.
 
-> **TODO(domain):** the custom domain isn't chosen yet. When it is, set `site`
-> in [`astro.config.mjs`](astro.config.mjs) and add a `routes` entry in
-> [`wrangler.jsonc`](wrangler.jsonc). Until then the site is on its
-> `*.workers.dev` URL.
+The domain is set in two places that must match: `site` in
+[`astro.config.mjs`](astro.config.mjs) and `routes` in
+[`wrangler.jsonc`](wrangler.jsonc).
 
 ## How it works
 
