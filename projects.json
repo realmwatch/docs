@@ -5,6 +5,47 @@
     "repo": "realmwatch/heimdall",
     "ref": "latest-release",
     "description": "Fleet security for a handful to a few hundred Linux servers: inventory, vulnerabilities, end-of-life, logins and attack surface, from one small hub.",
-    "order": ["getting-started", "deployment", "hosting", "collector"]
+    "nav": [
+      {
+        "label": "Set up",
+        "items": [
+          "getting-started",
+          { "page": "hosting", "label": "Where to host" },
+          "deployment",
+          { "page": "collector", "label": "Collector" }
+        ]
+      },
+      {
+        "label": "What it watches",
+        "items": [
+          "surface",
+          { "page": "failed-logins", "label": "Failed logins" },
+          "ip-awareness",
+          "deploy-services",
+          "anomaly-signals",
+          "threat-news"
+        ]
+      },
+      {
+        "label": "Acting on threats",
+        "items": [
+          { "page": "threats", "label": "Threat list" },
+          { "page": "bans", "label": "Edge bans" }
+        ]
+      },
+      {
+        "label": "Integrations",
+        "items": [
+          { "page": "cloudflare", "label": "Cloudflare" },
+          { "page": "tailscale", "label": "Tailscale" },
+          { "page": "ai", "label": "AI analysis" },
+          { "page": "mcp", "label": "MCP server" }
+        ]
+      },
+      {
+        "label": "Reference",
+        "items": [{ "page": "snapshot-format", "label": "Snapshot format" }]
+      }
+    ]
   }
 ]

@@ -1,0 +1,29 @@
+/* Sidebar: a group inside a project group (Set up, Integrations, ...) is a
+   small caps heading, so it reads as a section of the project above it. */
+.sidebar-content details details > summary .group-label > span {
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+.sidebar-content details details {
+  margin-top: 0.5rem;
+}
+
+/* Project overview: one compact card per sidebar group, links without bullets. */
+.rw-nav-cards .card {
+  padding: 1rem 1.25rem;
+  gap: 0.5rem;
+}
+.rw-nav-cards .card .title {
+  font-size: var(--sl-text-lg);
+}
+.rw-nav-cards .card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.rw-nav-cards .card li {
+  margin: 0.25rem 0 0;
+}

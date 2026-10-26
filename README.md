@@ -44,9 +44,13 @@ Add one line to `projects.json`:
 { "id": "my-tool", "name": "My Tool", "repo": "realmwatch/my-tool", "ref": "latest-release" }
 ```
 
-Optional fields: `description` (shown on the project's landing page) and
-`order` (page names to list first in the sidebar; the rest follow
-alphabetically by title). The repo must be public and have a `docs/` folder.
+Optional fields: `description` (shown on the project's landing page), `nav`
+(groups pages in the sidebar and on the landing page, with optional short
+sidebar labels; see `heimdall` in `projects.json` and
+[`scripts/nav.mjs`](scripts/nav.mjs)), and `order` (without `nav`: page names
+to list first; the rest follow alphabetically by title). Pages missing from
+`nav` still show up, under **More**, and the build warns about them. The repo
+must be public and have a `docs/` folder.
 
 If the build fails on a link in a project's docs, fix it in that project, or,
 if it's a conversion problem, in `scripts/fetch-docs.mjs`.
