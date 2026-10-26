@@ -8,10 +8,9 @@ import starlightLinksValidator from 'starlight-links-validator';
 const projects = JSON.parse(readFileSync(new URL('./projects.json', import.meta.url), 'utf8'));
 
 export default defineConfig({
-  // TODO(domain): set this to the docs site's public URL once the custom
-  // domain is chosen (also add it to `routes` in wrangler.jsonc). Used for
-  // canonical URLs and the sitemap.
-  // site: 'https://docs.example.com',
+  // Public URL, used for canonical URLs and the sitemap. Keep in sync with
+  // `routes` in wrangler.jsonc.
+  site: 'https://docs.realmwatch.dev',
   trailingSlash: 'always',
   integrations: [
     starlight({

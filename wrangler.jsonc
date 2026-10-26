@@ -10,9 +10,7 @@
     "not_found_handling": "404-page",
     // Pages are built as /path/index.html and linked as /path/.
     "html_handling": "auto-trailing-slash"
-  }
-  // TODO(domain): once the docs domain is chosen, attach it here, e.g.
-  //   "routes": [{ "pattern": "docs.example.com", "custom_domain": true }],
-  // and set `site` in astro.config.mjs to the same URL. Until then the site
-  // is served on its *.workers.dev URL.
+  },
+  // Keep in sync with `site` in astro.config.mjs.
+  "routes": [{ "pattern": "docs.realmwatch.dev", "custom_domain": true }]
 }
